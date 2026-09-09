@@ -19,6 +19,8 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/NVIDIA/go-nvml/pkg/nvml/mock/dgxa100"
+	mockserver "github.com/NVIDIA/go-nvml/pkg/nvml/mock/server"
 	"github.com/stretchr/testify/require"
 	"sigs.k8s.io/yaml"
 )
@@ -216,4 +218,23 @@ devices:
 	d2 := c.GetDeviceConfig(2) // no override -> inherit
 	require.Len(t, d2.Processes, 1, "device 2 (inherit) len")
 	require.Equal(t, uint32(1), d2.Processes[0].PID, "device 2 (inherit) PID")
+}
+
+// The address the node agent announces in a kernel log has to be the one the
+// running device serves, so the fallback here must track the base mock the
+// engine builds devices from rather than a formula that happens to match today.
+func TestBaseDevicePCIBusID_TracksTheBaseMock(t *testing.T) {
+	t.Parallel()
+
+	base := dgxa100.New()
+
+	for i := range base.Devices {
+		dev, ok := base.Devices[i].(*mockserver.Device)
+		require.Truef(t, ok, "base device %d is not a mockserver.Device", i)
+		require.Equalf(t, dev.PciBusID, BaseDevicePCIBusID(i),
+			"device %d must report the address the base mock carries", i)
+	}
+
+	require.Empty(t, BaseDevicePCIBusID(MaxDevices), "no device exists past the base mock")
+	require.Empty(t, BaseDevicePCIBusID(-1))
 }
