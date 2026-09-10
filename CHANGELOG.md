@@ -70,6 +70,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   a follow-up. (#712)
 
 ### Added
+- The Mokka control plane is published as a container image at
+  `ghcr.io/nvidia/mokka-control-plane`, multi-arch, cosign-signed and carrying
+  an SBOM attestation, on the same triggers as the nvml-mock image. It was
+  previously buildable from `deployments/control-plane/Dockerfile` but never
+  pushed anywhere, so it could only be run from a local build.
 - The node agent gains `pcibus`, `cdi` and `imex` simulators, each an
   `agent.Simulator` with the same stage/apply/discard lifecycle as the existing
   `gpudriver`. Together they subsume the device-surface construction that
